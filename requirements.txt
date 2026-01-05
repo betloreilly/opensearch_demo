@@ -1,0 +1,15 @@
+# Python dependencies for document ingestion script
+
+# OpenSearch client
+opensearch-py==2.4.2
+
+# Unstructured.io for document processing
+unstructured-client==0.18.0
+unstructured==0.12.4
+
+# OpenAI for embeddings
+openai==1.12.0
+
+# Utilities
+python-dotenv==1.0.1
+

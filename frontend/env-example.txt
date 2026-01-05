@@ -1,0 +1,13 @@
+# ===========================================
+# RAG Chat UI - Environment Variables
+# ===========================================
+# Copy this file to .env.local and fill in your values
+
+# Langflow Configuration (Required)
+LANGFLOW_URL=http://localhost:7860
+LANGFLOW_FLOW_ID=your-flow-id-here
+
+# Langflow API Key (Optional - only if authentication is enabled)
+# Get from Langflow UI: Settings > API Keys
+# Or run Langflow with: LANGFLOW_SKIP_AUTH_AUTO_LOGIN=true
+LANGFLOW_API_KEY=
