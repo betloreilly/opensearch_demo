@@ -26,9 +26,11 @@ node --version
 
 ---
 
-## Quick Start
+## Installation
 
-### 1. Start OpenSearch
+### 1. Install OpenSearch
+
+Start OpenSearch using Docker Compose:
 
 ```bash
 docker-compose up -d
@@ -39,7 +41,9 @@ Verify it's running:
 curl http://localhost:9200
 ```
 
-### 2. Set Up Python Environment
+You should see JSON output with OpenSearch version info.
+
+### 2. Install Python & Langflow
 
 Create a virtual environment and install Langflow:
 
@@ -52,21 +56,51 @@ uv pip install --upgrade langflow
 uv pip install fastapi==0.123.6  # Required compatibility fix
 ```
 
-### 3. Set Environment Variables
+### 3. Install Frontend Dependencies
+
+Navigate to the frontend directory and install Node.js dependencies:
 
 ```bash
-# Choose your LLM provider:
+cd frontend
+npm install
+cd ..
+```
 
-# Option 1: IBM watsonx.ai
+### 4. (Optional) Install Python Ingestion Script Dependencies
+
+If you plan to use the Python ingestion script:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Configuration
+
+### 1. Set Environment Variables
+
+Choose your LLM provider and set the appropriate API keys:
+
+#### Option 1: IBM watsonx.ai
+
+```bash
 export WATSONX_API_KEY="your-api-key"
 export WATSONX_PROJECT_ID="your-project-id"
 export WATSONX_URL="https://us-south.ml.cloud.ibm.com"
+```
 
-# Option 2: OpenAI
+Recommended models:
+- `ibm/granite-13b-chat-v2` for general Q&A
+- `meta-llama/llama-3-70b-instruct` for complex reasoning
+
+#### Option 2: OpenAI
+
+```bash
 export OPENAI_API_KEY="your-openai-api-key"
 ```
 
-### 4. Create OpenSearch Index
+### 2. Create OpenSearch Index
 
 Create the index with proper vector field configuration:
 
@@ -91,7 +125,57 @@ curl -X PUT "http://localhost:9200/hybrid_demo" -H 'Content-Type: application/js
 
 > **Note**: Dimension 1536 matches OpenAI's `text-embedding-3-small` model. Adjust if using a different embedding model.
 
-### 5. Start Langflow
+### 3. Configure Frontend Environment
+
+Create the frontend environment file:
+
+```bash
+cd frontend
+cp env-example.txt .env.local
+```
+
+Edit `.env.local` with your configuration:
+
+```bash
+LANGFLOW_URL=http://localhost:7860
+LANGFLOW_FLOW_ID=your-flow-id-from-langflow  # You'll get this after importing the flow
+LANGFLOW_API_KEY=your-api-key  # Optional: If Langflow authentication is enabled
+```
+
+### 4. (Optional) Configure Python Ingestion Script
+
+If using the Python ingestion script, create a `.env` file:
+
+```bash
+cp env-example.txt .env
+```
+
+Edit `.env` with your API keys:
+
+```bash
+# OpenSearch Configuration
+OPENSEARCH_HOST=localhost
+OPENSEARCH_PORT=9200
+OPENSEARCH_USER=admin
+OPENSEARCH_PASSWORD=admin
+OPENSEARCH_INDEX=hybrid_demo
+
+# Unstructured.io API (for document processing)
+UNSTRUCTURED_API_KEY=your_unstructured_api_key_here
+
+# OpenAI API (for embeddings)
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+Get API Keys:
+- **Unstructured.io**: Sign up at https://unstructured.io/
+- **OpenAI**: Get your API key from https://platform.openai.com/
+
+---
+
+## Getting Started
+
+### 1. Start Langflow
 
 ```bash
 langflow run
@@ -99,7 +183,12 @@ langflow run
 
 Open http://localhost:7860 in your browser.
 
-### 6. Import the Pre-built Flow
+> **Tip**: If you encounter authentication errors, start Langflow with:
+> ```bash
+> LANGFLOW_SKIP_AUTH_AUTO_LOGIN=true langflow run
+> ```
+
+### 2. Import the Pre-built RAG Flow
 
 1. In Langflow, click **My Projects** → **New Project** → **Import**
 2. Select `RAG with Opensearch.json` from this repo
@@ -109,17 +198,37 @@ Open http://localhost:7860 in your browser.
    - **Embedding Model**: Must match your indexed documents
 4. Add your API keys (OpenAI or watsonx)
 5. Test the flow with a sample query
-6. Copy the Flow ID from the URL or Settings panel
+6. **Copy the Flow ID** from the URL or Settings panel (you'll need this for the frontend)
 
 The flow includes Chat Input, OpenSearch retrieval, RAG prompt, and LLM response components pre-configured.
 
+### 3. Update Frontend Configuration
+
+Add the Flow ID to your frontend `.env.local` file:
+
+```bash
+cd frontend
+# Edit .env.local and set LANGFLOW_FLOW_ID=your-flow-id-here
+```
+
+### 4. Start the Chat UI
+
+```bash
+cd frontend
+npm run dev
+```
+
+Open http://localhost:3000 to start chatting!
+
 ---
 
-## Using Your Existing OpenSearch Index
+## Document Ingestion
+
+### Option A: Using Your Existing OpenSearch Index
 
 If you already have documents indexed in OpenSearch, you can easily connect the chat UI to your existing index.
 
-### Configure Langflow to Use Your Index
+#### Configure Langflow to Use Your Index
 
 1. Open Langflow at http://localhost:7860
 2. Open your imported RAG flow (or create a new one)
@@ -130,7 +239,7 @@ If you already have documents indexed in OpenSearch, you can easily connect the 
    - **Embedding Model**: Must match the model used during ingestion
 5. Save the flow
 
-### Required Index Schema
+#### Required Index Schema
 
 Your OpenSearch index should have these fields:
 
@@ -153,7 +262,7 @@ Your OpenSearch index should have these fields:
 }
 ```
 
-### Verify Your Index
+#### Verify Your Index
 
 Check that your index exists and has documents:
 
@@ -168,72 +277,42 @@ curl http://localhost:9200/YOUR_INDEX_NAME/_count
 curl http://localhost:9200/YOUR_INDEX_NAME/_search?size=1
 ```
 
-### Important Notes
+#### Important Notes
 
 - **Embedding Dimensions**: The vector dimension in your index must match the embedding model in Langflow (default: 1536 for OpenAI text-embedding-3-small)
 - **Field Names**: Langflow expects `vector_field` for vectors and `text` for content by default
 - **Multiple Indices**: You can create multiple Langflow flows, each connected to different indices
 
----
+### Option B: Python Ingestion Script
 
-## Alternative: Python Ingestion Script
+If you prefer to use a Python script for document ingestion, we provide a ready-to-use ingestion script.
 
-If you prefer to use a Python script for document ingestion instead of an external solution, we provide a ready-to-use ingestion script.
-
-### Setup
-
-1. **Install Python dependencies**:
-
-```bash
-pip install -r requirements.txt
-```
-
-2. **Configure environment variables**:
-
-Copy `env-example.txt` to `.env` and add your API keys:
-
-```bash
-# OpenSearch Configuration
-OPENSEARCH_HOST=localhost
-OPENSEARCH_PORT=9200
-OPENSEARCH_USER=admin
-OPENSEARCH_PASSWORD=admin
-OPENSEARCH_INDEX=hybrid_demo
-
-# Unstructured.io API (for document processing)
-UNSTRUCTURED_API_KEY=your_unstructured_api_key_here
-
-# OpenAI API (for embeddings)
-OPENAI_API_KEY=your_openai_api_key_here
-```
-
-3. **Get API Keys**:
-   - **Unstructured.io**: Sign up at https://unstructured.io/ for document parsing
-   - **OpenAI**: Get your API key from https://platform.openai.com/
-
-### Usage
+#### Usage
 
 Run the ingestion script with your documents directory:
 
 ```bash
-python scripts/ingest_unstructured_opensearch.py --input-dir ./data
+python scripts/ingest_unstructured_opensearch.py --dir ./data
 ```
 
-**Options**:
-- `--input-dir`: Directory containing documents (default: `./data/demo_docs`)
-- `--index-name`: OpenSearch index name (default: `hybrid_demo`)
-- `--recreate-index`: Delete and recreate the index before ingestion
+**Command Options**:
+- `--file`: Ingest a single file
+- `--dir`: Ingest all files from a directory
+- `--index`: OpenSearch index name (default: `hybrid_demo`)
+- `--recreate`: Delete and recreate the index before ingestion
+- `--llm-keywords`: Use LLM for keyword extraction (more accurate but costs API calls)
 
 **Supported file types**: PDF, DOCX, TXT, MD, HTML
 
-### What the Script Does
+#### What the Script Does
 
 1. **Document Processing**: Uses Unstructured.io API to extract text from various document formats
 2. **Text Chunking**: Splits documents into 1000-character chunks with 200-character overlap
-3. **Embedding Generation**: Creates vector embeddings using OpenAI's `text-embedding-3-small` model
-4. **Indexing**: Stores chunks with embeddings in OpenSearch with hybrid search configuration
+3. **Keyword Extraction**: Extracts keywords for hybrid search (heuristic or LLM-based)
+4. **Embedding Generation**: Creates vector embeddings using OpenAI's `text-embedding-3-small` model
+5. **Indexing**: Stores chunks with embeddings in OpenSearch with hybrid search configuration
 
-### Verify Ingestion
+#### Verify Ingestion
 
 ```bash
 # Check document count
@@ -242,36 +321,6 @@ curl http://localhost:9200/hybrid_demo/_count
 # View sample documents
 curl http://localhost:9200/hybrid_demo/_search?size=3
 ```
-
----
-
-## RAG Chat UI
-
-A Next.js web interface is available in the `frontend/` directory.
-
-### Setup
-
-```bash
-cd frontend
-npm install
-cp env-example.txt .env.local
-# Edit .env.local with your LANGFLOW_FLOW_ID
-```
-
-Your `.env.local` should contain:
-```bash
-LANGFLOW_URL=http://localhost:7860
-LANGFLOW_FLOW_ID=your-flow-id-from-langflow
-LANGFLOW_API_KEY=your-api-key  # If authentication is enabled
-```
-
-### Run
-
-```bash
-npm run dev
-```
-
-Open http://localhost:3000
 
 ---
 
@@ -386,28 +435,6 @@ curl -X POST "http://localhost:9200/hybrid_demo/_delete_by_query" -H 'Content-Ty
 
 ---
 
-## LLM Configuration
-
-### IBM watsonx.ai
-
-```bash
-export WATSONX_API_KEY="your-api-key"
-export WATSONX_PROJECT_ID="your-project-id"
-export WATSONX_URL="https://us-south.ml.cloud.ibm.com"
-```
-
-Recommended models:
-- `ibm/granite-13b-chat-v2` for general Q&A
-- `meta-llama/llama-3-70b-instruct` for complex reasoning
-
-### OpenAI
-
-```bash
-export OPENAI_API_KEY="your-api-key"
-```
-
----
-
 ## Troubleshooting
 
 **SSL Error: `[SSL] record layer failure`**
@@ -416,14 +443,14 @@ Langflow is trying HTTPS but local OpenSearch uses HTTP. Ensure your URL is `htt
 
 **`nmslib engine is deprecated`**
 
-OpenSearch 3.x removed the nmslib engine. Pre-create the index with `faiss` engine as shown in Step 4.
+OpenSearch 3.x removed the nmslib engine. Pre-create the index with `faiss` engine as shown in the Configuration section.
 
 **`Field 'vector_field' is not knn_vector type`**
 
 The index was created with the wrong configuration. Delete it and recreate:
 ```bash
 curl -X DELETE "http://localhost:9200/hybrid_demo"
-# Then run the create index command from Step 4
+# Then run the create index command from the Configuration section
 ```
 
 **`vm.max_map_count [65530] is too low`**
@@ -451,6 +478,15 @@ Since Langflow v1.5+, authentication is required. Either:
 - Verify Langflow is running: http://localhost:7860
 - Check `LANGFLOW_FLOW_ID` in `.env.local` matches your flow
 - Ensure Langflow API key is set if authentication is enabled
+
+**Port already in use**
+
+```bash
+# Check what's using the port
+lsof -i :3000  # or :7860, :9200
+
+# Stop the process or change ports in configs
+```
 
 ---
 
