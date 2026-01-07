@@ -1,13 +1,13 @@
 # RAG Chat with Langflow and OpenSearch
 
-A Retrieval-Augmented Generation (RAG) chat system using Langflow's visual interface with OpenSearch as the vector store. Build your RAG flows visually and deploy a beautiful chat interface.
+A Retrieval-Augmented Generation (RAG) chat system using Langflow's visual interface for preparing the RAG flow with OpenSearch as the vector store. Build your RAG flows visually and deploy a beautiful chat interface.
 
 ## Features
 
 - **Chat Interface**: Modern Next.js UI to interact with your RAG system
 - **Langflow Integration**: Visual drag-and-drop RAG flow builder
 - **OpenSearch Vector Store**: Hybrid search with BM25 + semantic vectors
-- **Document Ingestion**: Use Langflow's visual interface to ingest documents
+- **Document Ingestion**: You can use langflow or python script to ingest documents
 - **Hybrid Search**: Combines semantic search with keyword matching for better results
 
 ## Prerequisites
