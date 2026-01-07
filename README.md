@@ -12,17 +12,92 @@ A Retrieval-Augmented Generation (RAG) chat system using Langflow's visual inter
 
 ## Prerequisites
 
-- Docker Desktop (for OpenSearch)
-- Python 3.9+ (for Langflow)
-- Node.js 18+ (for the chat UI)
-- API keys: OpenAI or IBM watsonx.ai
+### System Requirements
 
-Verify installations:
+- **Operating System**: macOS, Linux, or Windows 10/11
+- **RAM**: Minimum 8GB (16GB recommended)
+- **Disk Space**: At least 10GB free space
+
+### Required Software
+
+#### 1. Container Runtime (Choose One)
+
+**Option A: Rancher Desktop** (Recommended)
+- Download from: https://rancherdesktop.io/
+- Supported: macOS, Windows, Linux
+- License: Free and open source
+- **Important**: Select `dockerd (moby)` as the container runtime in Settings
+- Provides: Docker CLI compatibility with `docker-compose` commands
+
+**Option B: Podman**
+- Download from: https://podman.io/
+- Supported: macOS, Linux, Windows
+- License: Free and open source
+- Features: Daemonless and can run rootless for better security
+- **Note**: Requires `podman-compose` for Compose file support
+  - Install: `pip install podman-compose` or `brew install podman-compose` (macOS)
+
+#### 2. Python 3.9 or Higher
+
+- Download from: https://www.python.org/downloads/
+- Required for: Langflow and optional document ingestion script
+- Recommended: Python 3.10 or 3.11
+
+#### 3. Node.js 18 or Higher
+
+- Download from: https://nodejs.org/
+- Required for: Chat UI frontend
+- Recommended: Node.js 20 LTS
+- Includes: npm (Node Package Manager)
+
+#### 4. API Keys
+
+You'll need at least one of the following:
+
+**Option A: OpenAI API Key**
+- Sign up at: https://platform.openai.com/
+- Used for: LLM responses and embeddings
+- Pricing: Pay-as-you-go
+
+**Option B: IBM watsonx.ai**
+- Sign up at: https://www.ibm.com/watsonx
+- Used for: LLM responses
+- Requires: API key, Project ID, and URL
+
+**Optional: Unstructured.io API Key**
+- Only needed if using the Python ingestion script
+- Sign up at: https://unstructured.io/
+- Used for: Document parsing (PDF, DOCX, etc.)
+
+### Verify Installations
+
+Run these commands to verify your setup:
+
 ```bash
+# Check container runtime
+# For Rancher Desktop:
 docker --version
-python --version
-node --version
+docker-compose --version
+
+# For Podman:
+podman --version
+podman-compose --version
+
+# Check Python
+python --version  # Should be 3.9 or higher
+# OR
+python3 --version
+
+# Check Node.js and npm
+node --version  # Should be 18 or higher
+npm --version
 ```
+
+### Additional Tools (Optional)
+
+- **Git**: For cloning the repository
+- **curl**: For testing API endpoints (usually pre-installed on macOS/Linux)
+- **Code Editor**: VS Code, Cursor, or your preferred IDE
 
 ---
 
@@ -32,9 +107,19 @@ node --version
 
 Start OpenSearch using Docker Compose:
 
+**Using Rancher Desktop:**
 ```bash
 docker-compose up -d
 ```
+
+**Using Podman:**
+```bash
+podman-compose up -d
+# OR
+podman compose up -d  # Podman 4.0+
+```
+
+> **Note for Rancher Desktop users**: Ensure you have selected `dockerd (moby)` as the container runtime in Rancher Desktop Settings → Container Engine.
 
 Verify it's running:
 ```bash
@@ -382,6 +467,7 @@ See the pre-built `RAG with Opensearch.json` flow for a complete example.
 
 ### Basic Commands
 
+**Using Rancher Desktop:**
 ```bash
 # Start services
 docker-compose up -d
@@ -397,6 +483,24 @@ docker-compose down
 
 # Stop and remove all data
 docker-compose down -v
+```
+
+**Using Podman:**
+```bash
+# Start services
+podman-compose up -d
+
+# Check status
+podman-compose ps
+
+# View logs
+podman-compose logs -f opensearch
+
+# Stop services
+podman-compose down
+
+# Stop and remove all data
+podman-compose down -v
 ```
 
 ### Verify OpenSearch
